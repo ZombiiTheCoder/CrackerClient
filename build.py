@@ -1,0 +1,12 @@
+import os
+print("Compiling Icons")
+os.chdir("src")
+os.system("go install github.com/tc-hib/go-winres@latest")
+# os.system("go-winres simply --icon \"src/www/imgs/logo.png\"")
+os.system("go-winres simply --icon \"www/imgs/logo.png\" --manifest gui")
+print("Compiling - Go")
+# os.chdir("../src")
+os.system("go build -o ../bin/CrackerClient-Dev.exe")
+os.system("go build -ldflags=\"-H windowsgui\" -o ../bin/CrackerClient.exe")
+os.chdir("../bin")
+os.system("CrackerClient-Dev.exe")
