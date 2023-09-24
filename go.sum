@@ -1,4 +1,6 @@
 github.com/vincent-petithory/dataurl v1.0.0 h1:cXw+kPto8NLuJtlMsI152irrVw9fRDX8AbShPRpg2CI=
 github.com/vincent-petithory/dataurl v1.0.0/go.mod h1:FHafX5vmDzyP+1CQATJn7WFKc9CvnvxyvZy6I1MrG/U=
+github.com/webview/webview v0.0.0-20230918173656-e77e3c2da385 h1:hILy2S/3oOHBO1FwZYfTH8YajK2gQcHTZkVXRcIbmYs=
+github.com/webview/webview v0.0.0-20230918173656-e77e3c2da385/go.mod h1:Zk81X+8/mp/MNoeJXXK4Noydn8pcea09e00dFfAwrxg=
 github.com/webview/webview_go v0.0.0-20230901181450-5a14030a9070 h1:imZLWyo1ondeQjqfb/eHuYgFiOAYg6ugSMCnGfPTPmg=
 github.com/webview/webview_go v0.0.0-20230901181450-5a14030a9070/go.mod h1:yE65LFCeWf4kyWD5re+h4XNvOHJEXOCOuJZ4v8l5sgk=

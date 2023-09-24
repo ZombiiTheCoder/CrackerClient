@@ -2,17 +2,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="index.css">
-    <script src="index.js" defer></script>
     <title>Cracker Client</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
 </head>
 <body>
     <nav><img id="logo"></nav>
     <div class="content">
-        <textarea class="console">Log</textarea>
-        <button id="InstallAndLaunch">
-            Install
-        </button>
+        <!-- <textarea class="console">Log</textarea> -->
+        <div class="console"></div>
+        <div class="btns">
+            <select id="versions">
+
+            </select>
+            <button id="InstallAndLaunch">
+                Install
+            </button>
+            <select id="launcher">
+                <option value="Vanilla">Vanilla</option>
+                <option value="Fabric">Fabric</option>
+                <option value="Quilt">Quilt</option>
+            </select>
+        </div>
+        <div class="btns">
+            <input type="text" id="username" class="btn_wide">
+            <button id="ChangeUser" class="btn">
+                Change
+            </button>
+        </div>
     </div>
+    <link rel="stylesheet" href="index.css">
+    <script src="index.js" type="module"></script>
 </body>
 </html>
