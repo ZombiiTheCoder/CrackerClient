@@ -31,7 +31,7 @@ async function init() {
         install.innerText = "Install"; return false
     }
 
-    fetch("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json").then(resp => {resp.json().then(async json => {
+    async function mov(json) {
         const versions = json["versions"]
         vNum = versions.length
         for (let index = 0; index < vNum; index++) {
@@ -60,13 +60,19 @@ async function init() {
             await WriteFile(await RoamingAppdata()+"/.crackerClient/config.json", new Config("EnterUserNameHere", "1.20.2", "Vanilla").toString())
             username.value="EnterUserNameHere"
         }
-    })})
+    }
+    
+    if (await FileExist(await RoamingAppdata()+"/.crackerClient/versionManifest_v2.json")) {
+        mov(JSON.parse(await ReadFile(await RoamingAppdata()+"/.crackerClient/versionManifest_v2.json")))
+    } else {
+        fetch("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json").then(resp => {resp.json().then(mov(json))})
+    }
 
     async function updateConfig() {
         versionExist()
         await WriteFile(await RoamingAppdata()+"/.crackerClient/config.json", new Config(username.value, vlist.options[vlist.selectedIndex].value, launcher.options[launcher.selectedIndex].value).toString())
     }
 
-    document.getElementById("logo").src = await Embed_ReadFileAsDataUrl("imgs/"+await edition()+"_logo.png");
+    document.getElementById("logo").src = await Embed_ReadFileAsDataUrl(await edition() == "dev" ? "imgs/"+await edition()+"_logo.png" : "imgs/logo.png");
 }
 init()

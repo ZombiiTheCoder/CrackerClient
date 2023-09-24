@@ -26,8 +26,7 @@ func main() {
 
 	isEmbed := true
 
-	debug := true
-	w := webview.New(debug)
+	w := webview.New(edition == "dev")
 	defer w.Destroy()
 	if (edition != "dev") { edition = ""; w.SetTitle("Cracker Client") } else {
 		w.SetTitle("Cracker Client - Dev")
