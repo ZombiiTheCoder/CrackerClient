@@ -13,89 +13,118 @@ import (
 )
 
 func bindFunctions(w webview.WebView) {
+    bind := func(name string, fn interface{}) {
+        if err := w.Bind(name, fn); err != nil {
+            fmt.Printf("Failed to bind %s: %v\n", name, err)
+        }
+    }
 
-	w.Bind("print", func(str any) { fmt.Println(str); })
+    bind("print", func(str any) { fmt.Println(str) })
 
-	w.Bind("FileExist", func(filePath string) bool { 
-		_, err := os.Stat(filePath);
-		return err == nil
-	})
-	w.Bind("Embed_FileExist", func(filePath string) bool {
-		fileSys, _ := fs.Sub(data, path.Join("data", path.Dir(filePath)));
-		_, fileName := path.Split(filePath);
-		_, err := fs.Stat(fileSys, fileName);
-		return err == nil
-	})
-	w.Bind("Embed_ReadFile", func(filePath string) string {
-		fileSys, _ := fs.Sub(data, path.Join("data", path.Dir(filePath)));
-		_, fileName := path.Split(filePath);
-		content, _ := fs.ReadFile(fileSys, fileName);
-		return string(content)
-	})
-	w.Bind("Embed_ReadFileAsDataUrl", func(filePath string) string {
-		fileSys, _ := fs.Sub(data, path.Join("data", path.Dir(filePath)));
-		_, fileName := path.Split(filePath);
-		content, _ := fs.ReadFile(fileSys, fileName);
-		return dataurl.EncodeBytes(content); 
-	})
-	w.Bind("Embed_CopyFile", func(filePath, NewFilePath string) {
-		os.MkdirAll(path.Dir(NewFilePath), fs.FileMode(os.O_CREATE));
-		fileSys, _ := fs.Sub(data, path.Join("data", path.Dir(filePath)));
-		_, fileName := path.Split(filePath);
-		content, _ := fs.ReadFile(fileSys, fileName);
-		os.WriteFile(NewFilePath, content, fs.FileMode(os.O_CREATE))
-	})
-	w.Bind("ReadFile", func(filePath string) string {
-		content, _ := os.ReadFile(filePath);
-		return string(content);
-	})
-	w.Bind("ReadFileAsDataUrl", func(filePath string) string {
-		content, _ := os.ReadFile(filePath);
-		return dataurl.EncodeBytes(content);
-	})
-	w.Bind("RemoveFile", func(filePath string) { os.Remove(filePath); })
-	w.Bind("RemoveDir", func(path string) { os.RemoveAll(path); })
-	w.Bind("CopyFile", func(filePath, NewFilePath string) {
-		os.MkdirAll(path.Dir(NewFilePath), fs.FileMode(os.O_CREATE));
-		z, _ := os.ReadFile(filePath);
-		os.WriteFile(NewFilePath, z, fs.FileMode(os.O_CREATE))
-	})
-	w.Bind("WriteFile", func(filePath, content string) {
-		os.MkdirAll(path.Dir(filePath), fs.FileMode(os.O_CREATE));
-		q, _ := os.Create(filePath);
-		q.WriteString(content); q.Close()
-	})
-	w.Bind("LocalAppdata", func() string { return LocalAppData; })
-	w.Bind("RoamingAppdata", func() string { return RoamingAppData; })
-	w.Bind("edition", func() string { return edition; })
+    fileExist := func(filePath string) bool {
+        _, err := os.Stat(filePath)
+        return err == nil
+    }
+    embedFileExist := func(filePath string) bool {
+        fileSys, _ := fs.Sub(data, path.Join("data", path.Dir(filePath)))
+        _, fileName := path.Split(filePath)
+        _, err := fs.Stat(fileSys, fileName)
+        return err == nil
+    }
 
-	w.Bind("execute", func(cwd string, prg string, args ...string) {
-		cmd := exec.Command(prg, args...);
-		cmd.Dir = cwd
-		stdout, err := cmd.StdoutPipe()
-		if err != nil { fmt.Println(err) }
-		err = cmd.Start()
-		fmt.Println("The command is running")
-		if err != nil { fmt.Println(err) }
-		// realtime std::out logging
-		go func(){
-			scanner := bufio.NewScanner(stdout)
-			for scanner.Scan() {
-				m := scanner.Text()
-				fmt.Printf("%v\n", m)
-				w.Dispatch(func() {
-					// Log to HTML logger
-					w.Eval(fmt.Sprintf(`
+    bind("FileExist", fileExist)
+    bind("Embed_FileExist", embedFileExist)
+
+    readFile := func(filePath string) string {
+        content, _ := os.ReadFile(filePath)
+        return string(content)
+    }
+    embedReadFile := func(filePath string) string {
+        fileSys, _ := fs.Sub(data, path.Join("data", path.Dir(filePath)))
+        _, fileName := path.Split(filePath)
+        content, _ := fs.ReadFile(fileSys, fileName)
+        return string(content)
+    }
+
+    bind("ReadFile", readFile)
+    bind("Embed_ReadFile", embedReadFile)
+
+    readFileAsDataUrl := func(filePath string) string {
+        content, _ := os.ReadFile(filePath)
+        return dataurl.EncodeBytes(content)
+    }
+    embedReadFileAsDataUrl := func(filePath string) string {
+        fileSys, _ := fs.Sub(data, path.Join("data", path.Dir(filePath)))
+        _, fileName := path.Split(filePath)
+        content, _ := fs.ReadFile(fileSys, fileName)
+        return dataurl.EncodeBytes(content)
+    }
+
+    bind("ReadFileAsDataUrl", readFileAsDataUrl)
+    bind("Embed_ReadFileAsDataUrl", embedReadFileAsDataUrl)
+
+    copyFile := func(filePath, newFilePath string) {
+        os.MkdirAll(path.Dir(newFilePath), fs.FileMode(os.O_CREATE))
+        z, _ := os.ReadFile(filePath)
+        os.WriteFile(newFilePath, z, fs.FileMode(os.O_CREATE))
+    }
+    embedCopyFile := func(filePath, newFilePath string) {
+        os.MkdirAll(path.Dir(newFilePath), fs.FileMode(os.O_CREATE))
+        fileSys, _ := fs.Sub(data, path.Join("data", path.Dir(filePath)))
+        _, fileName := path.Split(filePath)
+        content, _ := fs.ReadFile(fileSys, fileName)
+        os.WriteFile(newFilePath, content, fs.FileMode(os.O_CREATE))
+    }
+
+    bind("CopyFile", copyFile)
+    bind("Embed_CopyFile", embedCopyFile)
+
+    bind("RemoveFile", func(filePath string) { os.Remove(filePath) })
+    bind("RemoveDir", func(path string) { os.RemoveAll(path) })
+
+    writeFile := func(filePath, content string) {
+        os.MkdirAll(path.Dir(filePath), fs.FileMode(os.O_CREATE))
+        q, _ := os.Create(filePath)
+        q.WriteString(content)
+        q.Close()
+    }
+
+    bind("WriteFile", writeFile)
+    bind("LocalAppdata", func() string { return LocalAppData })
+    bind("RoamingAppdata", func() string { return RoamingAppData })
+    bind("edition", func() string { return edition })
+
+    bind("execute", func(cwd string, prg string, args ...string) {
+        cmd := exec.Command(prg, args...)
+        cmd.Dir = cwd
+        stdout, err := cmd.StdoutPipe()
+        if err != nil {
+            fmt.Println(err)
+        }
+        err = cmd.Start()
+        fmt.Println("The command is running")
+        if err != nil {
+            fmt.Println(err)
+        }
+        // Realtime std::out logging
+        go func() {
+            scanner := bufio.NewScanner(stdout)
+            for scanner.Scan() {
+                m := scanner.Text()
+                fmt.Printf("%v\n", m)
+                w.Dispatch(func() {
+                    // Log to HTML logger
+                    w.Eval(fmt.Sprintf(`
 z3 = document.createElement("pre"); z3.innerText = "%v"; z3.setAttribute("class", "log");
 document.getElementsByClassName("console")[0].append(z3)
 if (Math.round(document.getElementsByClassName("console")[0].scrollTop) >= (document.getElementsByClassName("console")[0].scrollHeight - 659)) {
-	document.getElementsByClassName("console")[0].scroll(0, document.getElementsByClassName("console")[0].scrollHeight)
+    document.getElementsByClassName("console")[0].scroll(0, document.getElementsByClassName("console")[0].scrollHeight)
 }
 `, m))
-				})
-			}
-			cmd.Wait()
-		}()
-		
-	})
+                })
+            }
+            cmd.Wait()
+        }()
+
+    })
 }
