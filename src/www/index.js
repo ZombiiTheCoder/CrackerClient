@@ -20,12 +20,11 @@ async function init() {
     let vNum = 0;
 
     function updateConfig() {
-        const isVersionExist = versionExist();
-        install.innerText = installButtonTexts[isVersionExist];
+        install.innerText = installButtonTexts[versionExist()];
         WriteFile(`${roamingAppdata}/.crackerClient/config.json`, new Config(username.value, vlistOptions[vlist.selectedIndex].value, launcherOptions[launcher.selectedIndex].value).toString());
     }
 
-    function versionExist() {
+    async function versionExist() {
         let vpath = "q";
         switch (launcherOptions[launcher.selectedIndex].value) {
             case "Vanilla":
@@ -41,11 +40,11 @@ async function init() {
                 vpath = `${roamingAppdata}/.crackerClient/versions/Forge_${vlistOptions[vlist.selectedIndex].value}`;
                 break;
         }
-        return FileExist(vpath);
+        return await FileExist(vpath);
     }
 
-    function mov(json) {
-        const versions = json.versions;
+    async function mov(json) {
+        const versions = json["versions"];
         vNum = versions.length;
         for (let index = 0; index < vNum; index++) {
             const ver = document.createElement("option");
@@ -58,11 +57,11 @@ async function init() {
         } else {
             install.innerText = "Install";
         }
-        if (FileExist(`${roamingAppdata}/.crackerClient/config.json`)) {
-            const config = JSON.parse(ReadFile(`${roamingAppdata}/.crackerClient/config.json`));
-            const { version, launcher, name } = config;
-            vlist.selectedIndex = [...vlistOptions].findIndex(option => option.value === version);
-            launcher.selectedIndex = [...launcherOptions].findIndex(option => option.value === launcher);
+        if (await FileExist(`${roamingAppdata}/.crackerClient/config.json`)) {
+            const config = JSON.parse(await ReadFile(`${roamingAppdata}/.crackerClient/config.json`));
+            const name = config["name"]; const SelectedVersion = config["version"]; const SelectedLauncher = config["launcher"]
+            vlist.selectedIndex = vlist.querySelectorAll(`option[value="${SelectedVersion}"]`)[0].index
+            launcher.selectedIndex = launcher.querySelectorAll(`option[value="${SelectedLauncher}"]`)[0].index
             username.value = name;
         } else {
             WriteFile(`${roamingAppdata}/.crackerClient/config.json`, new Config("EnterUserNameHere", "1.20.2", "Vanilla").toString());
@@ -70,8 +69,8 @@ async function init() {
         }
     }
 
-    if (FileExist(`${roamingAppdata}/.crackerClient/versionManifest_v2.json`)) {
-        mov(JSON.parse(ReadFile(`${roamingAppdata}/.crackerClient/versionManifest_v2.json`)));
+    if (await FileExist(`${roamingAppdata}/.crackerClient/versionManifest_v2.json`)) {
+        mov(JSON.parse(await ReadFile(`${roamingAppdata}/.crackerClient/versionManifest_v2.json`)));
     } else {
         fetch("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")
             .then(resp => resp.json())
@@ -85,7 +84,7 @@ async function init() {
         await execute(`${roamingAppdata}/.crackerClient`, "java", "-jar", `${roamingAppdata}/.crackerClient/Launcher.jar`);
     });
 
-    document.getElementById("logo").src = await Embed_ReadFileAsDataUrl(await edition() == "dev" ? "imgs/" + await edition() + "_logo.png" : "imgs/logo.png");
+    document.getElementById("logo").src = await Embed_ReadFileAsDataUrl(await edition() == "dev" ? `imgs/${await edition()}_logo.png` : "imgs/logo.png");
 }
 
 init()
