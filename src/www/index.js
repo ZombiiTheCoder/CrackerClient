@@ -7,73 +7,85 @@ const changeUser = document.getElementById("ChangeUser")
 const username = document.getElementById("username")
 
 async function init() {
+    const roamingAppdata = await RoamingAppdata();
+    const launcherOptions = launcher.options;
+    const vlistOptions = vlist.options;
+    const installButtonTexts = {
+        true: "Launch",
+        false: "Install"
+    };
 
-    await Embed_CopyFile("launcher/Launcher.jar", await RoamingAppdata()+"/.crackerClient/Launcher.jar")
+    await Embed_CopyFile("launcher/Launcher.jar", `${roamingAppdata}/.crackerClient/Launcher.jar`);
 
-    let vNum = 0
+    let vNum = 0;
 
-    changeUser.addEventListener("click", async ()=>{ updateConfig() })
-    launcher.addEventListener("change", async ()=>{ updateConfig() })
-    vlist.addEventListener("change", async ()=>{ updateConfig() })
-    install.addEventListener("click", async ()=>{
-        // print(`javaw -jar ${await RoamingAppdata()}\\.crackerClient\\Launcher.jar`)
-        await execute(`${await RoamingAppdata()}\\.crackerClient`, "java", `-jar`, `${await RoamingAppdata()}\\.crackerClient\\Launcher.jar`)
-    })
-    
-    async function versionExist() {
-        let vpath = "q"
-        switch (launcher.options[launcher.selectedIndex].value) {
-            case "Vanilla": vpath = `${await RoamingAppdata()}/.crackerClient/versions/${vlist.options[vlist.selectedIndex].value}`; break
-            case "Fabric": vpath = `${await RoamingAppdata()}/.crackerClient/versions/Fabric_${vlist.options[vlist.selectedIndex].value}`; break
-            case "Quilt": vpath = `${await RoamingAppdata()}/.crackerClient/versions/Quilt_${vlist.options[vlist.selectedIndex].value}`; break
-            case "Forge": vpath = `${await RoamingAppdata()}/.crackerClient/versions/Forge_${vlist.options[vlist.selectedIndex].value}`; break
-        }
-        if (await FileExist(vpath)) { install.innerText = "Launch"; return true }
-        install.innerText = "Install"; return false
+    function updateConfig() {
+        const isVersionExist = versionExist();
+        install.innerText = installButtonTexts[isVersionExist];
+        WriteFile(`${roamingAppdata}/.crackerClient/config.json`, new Config(username.value, vlistOptions[vlist.selectedIndex].value, launcherOptions[launcher.selectedIndex].value).toString());
     }
 
-    async function mov(json) {
-        const versions = json["versions"]
-        vNum = versions.length
+    function versionExist() {
+        let vpath = "q";
+        switch (launcherOptions[launcher.selectedIndex].value) {
+            case "Vanilla":
+                vpath = `${roamingAppdata}/.crackerClient/versions/${vlistOptions[vlist.selectedIndex].value}`;
+                break;
+            case "Fabric":
+                vpath = `${roamingAppdata}/.crackerClient/versions/Fabric_${vlistOptions[vlist.selectedIndex].value}`;
+                break;
+            case "Quilt":
+                vpath = `${roamingAppdata}/.crackerClient/versions/Quilt_${vlistOptions[vlist.selectedIndex].value}`;
+                break;
+            case "Forge":
+                vpath = `${roamingAppdata}/.crackerClient/versions/Forge_${vlistOptions[vlist.selectedIndex].value}`;
+                break;
+        }
+        return FileExist(vpath);
+    }
+
+    function mov(json) {
+        const versions = json.versions;
+        vNum = versions.length;
         for (let index = 0; index < vNum; index++) {
             const ver = document.createElement("option");
-            ver.text = versions[index].id
-            ver.value = versions[index].id
-            vlist.append(ver)
+            ver.text = versions[index].id;
+            ver.value = versions[index].id;
+            vlist.append(ver);
         }
-        versionExist()
-        if (await FileExist(await RoamingAppdata()+"/.crackerClient/config.json")) {
-            const json = JSON.parse(await ReadFile(await RoamingAppdata()+"/.crackerClient/config.json"))
-            // Versions Index
-            let x = document.getElementById("versions").querySelectorAll(`option[value="${json["version"]}"]`);
-            if (x.length === 1) {
-                console.log(x[0].index);
-                vlist.selectedIndex = x[0].index;
-            }
-            // Launcher Index
-            x = document.getElementById("launcher").querySelectorAll(`option[value="${json["launcher"]}"]`);
-            if (x.length === 1) {
-                console.log(x[0].index);
-                launcher.selectedIndex = x[0].index;
-            }
-            username.value=json["name"]
+        if (versionExist()) {
+            install.innerText = "Launch";
         } else {
-            await WriteFile(await RoamingAppdata()+"/.crackerClient/config.json", new Config("EnterUserNameHere", "1.20.2", "Vanilla").toString())
-            username.value="EnterUserNameHere"
+            install.innerText = "Install";
+        }
+        if (FileExist(`${roamingAppdata}/.crackerClient/config.json`)) {
+            const config = JSON.parse(ReadFile(`${roamingAppdata}/.crackerClient/config.json`));
+            const { version, launcher, name } = config;
+            vlist.selectedIndex = [...vlistOptions].findIndex(option => option.value === version);
+            launcher.selectedIndex = [...launcherOptions].findIndex(option => option.value === launcher);
+            username.value = name;
+        } else {
+            WriteFile(`${roamingAppdata}/.crackerClient/config.json`, new Config("EnterUserNameHere", "1.20.2", "Vanilla").toString());
+            username.value = "EnterUserNameHere";
         }
     }
-    
-    if (await FileExist(await RoamingAppdata()+"/.crackerClient/versionManifest_v2.json")) {
-        mov(JSON.parse(await ReadFile(await RoamingAppdata()+"/.crackerClient/versionManifest_v2.json")))
+
+    if (FileExist(`${roamingAppdata}/.crackerClient/versionManifest_v2.json`)) {
+        mov(JSON.parse(ReadFile(`${roamingAppdata}/.crackerClient/versionManifest_v2.json`)));
     } else {
-        fetch("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json").then(resp => {resp.json().then(json => {mov(json)})})
+        fetch("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")
+            .then(resp => resp.json())
+            .then(json => mov(json));
     }
 
-    async function updateConfig() {
-        versionExist()
-        await WriteFile(await RoamingAppdata()+"/.crackerClient/config.json", new Config(username.value, vlist.options[vlist.selectedIndex].value, launcher.options[launcher.selectedIndex].value).toString())
-    }
+    changeUser.addEventListener("click", updateConfig);
+    launcher.addEventListener("change", updateConfig);
+    vlist.addEventListener("change", updateConfig);
+    install.addEventListener("click", async () => {
+        await execute(`${roamingAppdata}/.crackerClient`, "java", "-jar", `${roamingAppdata}/.crackerClient/Launcher.jar`);
+    });
 
-    document.getElementById("logo").src = await Embed_ReadFileAsDataUrl(await edition() == "dev" ? "imgs/"+await edition()+"_logo.png" : "imgs/logo.png");
+    document.getElementById("logo").src = await Embed_ReadFileAsDataUrl(await edition() == "dev" ? "imgs/" + await edition() + "_logo.png" : "imgs/logo.png");
 }
+
 init()
