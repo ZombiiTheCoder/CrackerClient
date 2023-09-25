@@ -1,14 +1,15 @@
 import Config from "/configBuilder.js"
 
+const vlist = document.getElementById("versions")
+const launcher = document.getElementById("launcher")
+const install = document.getElementById("InstallAndLaunch")
+const changeUser = document.getElementById("ChangeUser")
+const username = document.getElementById("username")
+
 async function init() {
 
     await Embed_CopyFile("launcher/Launcher.jar", await RoamingAppdata()+"/.crackerClient/Launcher.jar")
 
-    let vlist = document.getElementById("versions")
-    const launcher = document.getElementById("launcher")
-    const install = document.getElementById("InstallAndLaunch")
-    const changeUser = document.getElementById("ChangeUser")
-    const username = document.getElementById("username")
     let vNum = 0
 
     changeUser.addEventListener("click", async ()=>{ updateConfig() })
@@ -16,7 +17,7 @@ async function init() {
     vlist.addEventListener("change", async ()=>{ updateConfig() })
     install.addEventListener("click", async ()=>{
         // print(`javaw -jar ${await RoamingAppdata()}\\.crackerClient\\Launcher.jar`)
-        await execute(`${await RoamingAppdata()}\\.crackerClient`, "javaw", `-jar`, `${await RoamingAppdata()}\\.crackerClient\\Launcher.jar`)
+        await execute(`${await RoamingAppdata()}\\.crackerClient`, "java", `-jar`, `${await RoamingAppdata()}\\.crackerClient\\Launcher.jar`)
     })
     
     async function versionExist() {
@@ -65,7 +66,7 @@ async function init() {
     if (await FileExist(await RoamingAppdata()+"/.crackerClient/versionManifest_v2.json")) {
         mov(JSON.parse(await ReadFile(await RoamingAppdata()+"/.crackerClient/versionManifest_v2.json")))
     } else {
-        fetch("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json").then(resp => {resp.json().then(mov(json))})
+        fetch("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json").then(resp => {resp.json().then(json => {mov(json)})})
     }
 
     async function updateConfig() {

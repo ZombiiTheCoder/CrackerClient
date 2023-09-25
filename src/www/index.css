@@ -3,9 +3,11 @@ body, html {
 }
 
 #logo {
-    width: 6vw;
-    height: 6vw;
+    margin: .5vw;
+    width: 5vw;
+    height: 5vw;
     user-select: none;
+    -webkit-user-drag: none;
 }
 
 nav {

@@ -13,8 +13,6 @@ import (
 func root(fs http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		// fmt.Println("Access: ", r.URL.Query().Get("access"))
-
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.Header().Add("Clear-Size-Data", "*")
 		fmt.Println(r.URL.Path)
