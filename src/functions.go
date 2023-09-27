@@ -121,7 +121,7 @@ func bindFunctions(w webview.WebView) {
                 fmt.Println(fn)
             })
             w.Bind("save", func (data string)  {
-                os.WriteFile("cookie.txt", []byte(data), fs.FileMode(os.O_CREATE))
+                // os.WriteFile("cookie.txt", []byte(data), fs.FileMode(os.O_CREATE))
                 q, _ := regexp.Compile("token:.*:")
                 AccessToken := strings.ReplaceAll(strings.ReplaceAll(q.FindString(data), "token:", ""), ":", "")
                 jwtData, _ := base64.RawStdEncoding.DecodeString(strings.Split(AccessToken, ".")[1])
