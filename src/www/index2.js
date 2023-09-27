@@ -22,7 +22,7 @@ async function init() {
     }
 
     provider.addEventListener("change", updateConfig);
-    signin.addEventListener("click", ()=>{login_with_microsft()})
+    signin.addEventListener("click", ()=>{login_with_microsoft()})
     document.getElementById("logo").src = await Embed_ReadFileAsDataUrl(await edition() == "dev" ? `imgs/${await edition()}_logo.png` : "imgs/logo.png");
 }
 

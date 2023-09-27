@@ -2,22 +2,11 @@ package main
 
 import (
 	"bufio"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"io"
 	"io/fs"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
-
-	"github.com/buger/jsonparser"
-	"github.com/twinj/uuid"
 
 	"github.com/vincent-petithory/dataurl"
 	webview "github.com/webview/webview_go"
@@ -29,6 +18,9 @@ func bindFunctions(w webview.WebView) {
             fmt.Printf("Failed to bind %s: %v\n", name, err)
         }
     }
+
+    // Auth
+    bind("login_with_microsoft", func ()  { login_with_microsoft(w) })
 
     bind("print", func(str any) { fmt.Println(str) })
 
@@ -100,76 +92,10 @@ func bindFunctions(w webview.WebView) {
         q.Close()
     }
 
-    type aTkn struct {
-        Name string `json:"name"`
-        Uuid string `json:"uuid"`
-        Xuid string `json:"xuid"`
-        ClientID string `json:"clientID"`
-        AccessToken string `json:"accessToken"`
-        UserType string `json:"userType"`
-    }
-
     bind("WriteFile", writeFile)
     bind("LocalAppdata", func() string { return LocalAppData })
     bind("RoamingAppdata", func() string { return RoamingAppData })
     bind("edition", func() string { return edition })
-    bind("login_with_microsft", func() { 
-        w.Dispatch(func() {
-            w.SetTitle("Minecraft Login")
-            w.Navigate("https://sisu.xboxlive.com/connect/XboxLive/?state=login&cobrandId=8058f65d-ce06-4c30-9559-473c9275a65d&tid=896928775&ru=https%3A%2F%2Fwww.minecraft.net%2Fen-us%2Flogin&aid=1142970254")
-            w.Bind("println", func (fn any)  {
-                fmt.Println(fn)
-            })
-            w.Bind("save", func (data string)  {
-                // os.WriteFile("cookie.txt", []byte(data), fs.FileMode(os.O_CREATE))
-                q, _ := regexp.Compile("token:.*:")
-                AccessToken := strings.ReplaceAll(strings.ReplaceAll(q.FindString(data), "token:", ""), ":", "")
-                jwtData, _ := base64.RawStdEncoding.DecodeString(strings.Split(AccessToken, ".")[1])
-                Uuid, _ := jsonparser.GetString(jwtData, "profiles", "mc")
-                resp, _ := http.Get("https://playerdb.co/api/player/minecraft/"+Uuid)
-                defer resp.Body.Close()
-                body := make([]byte, 0)
-                if (resp.StatusCode == http.StatusOK) { body, _ = io.ReadAll(resp.Body) }
-                Name, _ := jsonparser.GetString(body, "data", "player", "username")
-                Xuid, _ := jsonparser.GetString(jwtData, "xuid")
-                ClientID := base64.RawStdEncoding.EncodeToString([]byte(uuid.NewV1().String()))
-                // YmQyNDViY2UtOGFhNC00ODNmLWI4NzctNmFiZmIxZWE4MWY5
-                
-                UserData := aTkn{
-                    Name: Name,
-                    Uuid: Uuid,
-                    Xuid: Xuid,
-                    ClientID: ClientID,
-                    AccessToken: AccessToken,
-                    UserType: "msa",
-                }
-
-                bytez, _ := json.MarshalIndent(UserData, "", "  ")
-                os.WriteFile(RoamingAppData + "/.crackerClient/AuthConfig.json", bytez, os.FileMode(os.O_CREATE))
-
-            })
-            go func() {
-                stop := false
-                w.Dispatch(func() {
-                    w.Bind("back", func() {
-                        stop = true
-                        w.SetTitle("Cracker Client")
-                        w.Navigate("http://localhost:"+strconv.Itoa(port))
-                    })
-                })
-                for {
-                    if (stop) {
-                        break
-                    }
-                    fmt.Println(stop)
-                    w.Dispatch(func() {
-                        w.Eval("setTimeout(()=>{if (document.domain == 'www.minecraft.net') { save(document.cookie); back() }}, 6000)")
-                    })
-                    time.Sleep(1 * time.Second)
-                }
-            }()
-        })
-     })
     bind("port", func() int { return port; })
     bind("execute", func(cwd string, prg string, args ...string) {
         cmd := exec.Command(prg, args...)
