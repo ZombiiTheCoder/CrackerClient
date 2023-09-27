@@ -89,7 +89,7 @@ async function init() {
     launcher.addEventListener("change", updateConfig);
     vlist.addEventListener("change", updateConfig);
     install.addEventListener("click", async () => {
-        await execute(`${roamingAppdata}/.crackerClient`, "java", ...LaunchCommand);
+        await execute(`${roamingAppdata}/.crackerClient`, "javaw", ...LaunchCommand);
     });
     document.getElementById("logo").src = await Embed_ReadFileAsDataUrl(await edition() == "dev" ? `imgs/${await edition()}_logo.png` : "imgs/logo.png");
     setTimeout(versionExist(), 100)
