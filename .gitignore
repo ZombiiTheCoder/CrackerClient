@@ -1,7 +1,9 @@
-/.vscode
-/bin
-/server.go
-/WebView.jar
-/src/www/favicon.ico
-/src/winres/icon.png
+.vscode
+bin
+server.go
+WebView.jar
+src/www/favicon.ico
+src/winres/icon.png
 cookie.txt
+e.bat
+logs

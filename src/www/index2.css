@@ -62,7 +62,6 @@ nav {
     width: 10vw;
     height: 3vw;
     position: relative;
-    transform: translateY(-70%);
     border-radius: 40px;
     background-color: #383838;
     color: white;
@@ -93,9 +92,9 @@ nav {
     width: 30vw !important;
 }
 
-.btns {
+/* .btns {
     width: 100vw;
     display: flex;
     justify-content: center;
     align-items: center;
-}
+} */

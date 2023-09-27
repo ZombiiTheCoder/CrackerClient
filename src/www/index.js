@@ -1,46 +1,56 @@
-import Config from "/configBuilder.js"
+import { Config } from "/configBuilder.js"
 
 const vlist = document.getElementById("versions")
 const launcher = document.getElementById("launcher")
 const install = document.getElementById("InstallAndLaunch")
 const changeUser = document.getElementById("ChangeUser")
 const username = document.getElementById("username")
+const username_auth = document.getElementById("username_auth")
+document.getElementById("settings").addEventListener("click", async ()=>{location.href=`http://localhost:${await port()}/settings.html`})
 
 async function init() {
     const roamingAppdata = await RoamingAppdata();
+    let LaunchCommand = ["-jar", `${roamingAppdata}/.crackerClient/Launcher.jar`]
     const launcherOptions = launcher.options;
     const vlistOptions = vlist.options;
-    const installButtonTexts = {
-        true: "Launch",
-        false: "Install"
-    };
 
     await Embed_CopyFile("launcher/Launcher.jar", `${roamingAppdata}/.crackerClient/Launcher.jar`);
 
     let vNum = 0;
 
-    function updateConfig() {
-        install.innerText = installButtonTexts[versionExist()];
-        WriteFile(`${roamingAppdata}/.crackerClient/config.json`, new Config(username.value, vlistOptions[vlist.selectedIndex].value, launcherOptions[launcher.selectedIndex].value).toString());
-    }
-
     async function versionExist() {
         let vpath = "q";
         switch (launcherOptions[launcher.selectedIndex].value) {
             case "Vanilla":
-                vpath = `${roamingAppdata}/.crackerClient/versions/${vlistOptions[vlist.selectedIndex].value}`;
+                vpath = `${roamingAppdata}/.crackerClient/versions/${vlistOptions[vlist.selectedIndex].value}/${vlistOptions[vlist.selectedIndex].value}.jar`;
                 break;
             case "Fabric":
-                vpath = `${roamingAppdata}/.crackerClient/versions/Fabric_${vlistOptions[vlist.selectedIndex].value}`;
+                vpath = `${roamingAppdata}/.crackerClient/versions/Fabric_${vlistOptions[vlist.selectedIndex].value}/Fabric_${vlistOptions[vlist.selectedIndex].value}.jar`;
                 break;
             case "Quilt":
-                vpath = `${roamingAppdata}/.crackerClient/versions/Quilt_${vlistOptions[vlist.selectedIndex].value}`;
+                vpath = `${roamingAppdata}/.crackerClient/versions/Quilt_${vlistOptions[vlist.selectedIndex].value}/Quilt_${vlistOptions[vlist.selectedIndex].value}.jar`;
                 break;
             case "Forge":
-                vpath = `${roamingAppdata}/.crackerClient/versions/Forge_${vlistOptions[vlist.selectedIndex].value}`;
+                vpath = `${roamingAppdata}/.crackerClient/versions/Forge_${vlistOptions[vlist.selectedIndex].value}/Forge_${vlistOptions[vlist.selectedIndex].value}.jar`;
                 break;
         }
-        return await FileExist(vpath);
+        install.innerText = await FileExist(vpath) ? "Launch" : "Install"
+
+        if (await FileExist(`${roamingAppdata}/.crackerClient/config.json`) && await FileExist(`${roamingAppdata}/.crackerClient/AuthConfig.json`)) {
+            const z = JSON.parse(await ReadFile(`${roamingAppdata}/.crackerClient/config.json`))
+            const z2 = JSON.parse(await ReadFile(`${roamingAppdata}/.crackerClient/AuthConfig.json`))
+            const authType = z["authType"]
+            username_auth.value = z2["name"]
+            changeUser.style.display = authType == "microsoft" ? "none" : "block"
+            username.style.display = authType == "microsoft" ? "none" : "block"
+            username_auth.style.display = authType == "microsoft" ? "block" : "none"
+            LaunchCommand = authType == "microsoft" ? ["-cp", `${roamingAppdata}/.crackerClient/Launcher.jar`, "org.zombii.main.MainAuth"] : ["-jar", `${roamingAppdata}/.crackerClient/Launcher.jar`]
+        }
+    }
+
+    async function updateConfig() {
+        versionExist();
+        WriteFile(`${roamingAppdata}/.crackerClient/config.json`, new Config(username.value, vlistOptions[vlist.selectedIndex].value, launcherOptions[launcher.selectedIndex].value, JSON.parse(await ReadFile(`${roamingAppdata}/.crackerClient/config.json`))["authType"]).toString());
     }
 
     async function mov(json) {
@@ -52,11 +62,9 @@ async function init() {
             ver.value = versions[index].id;
             vlist.append(ver);
         }
-        if (versionExist()) {
-            install.innerText = "Launch";
-        } else {
-            install.innerText = "Install";
-        }
+        
+        versionExist();
+
         if (await FileExist(`${roamingAppdata}/.crackerClient/config.json`)) {
             const config = JSON.parse(await ReadFile(`${roamingAppdata}/.crackerClient/config.json`));
             const name = config["name"]; const SelectedVersion = config["version"]; const SelectedLauncher = config["launcher"]
@@ -64,7 +72,7 @@ async function init() {
             launcher.selectedIndex = launcher.querySelectorAll(`option[value="${SelectedLauncher}"]`)[0].index
             username.value = name;
         } else {
-            WriteFile(`${roamingAppdata}/.crackerClient/config.json`, new Config("EnterUserNameHere", "1.20.2", "Vanilla").toString());
+            WriteFile(`${roamingAppdata}/.crackerClient/config.json`, new Config("EnterUserNameHere", "1.20.2", "Vanilla", "cracked").toString());
             username.value = "EnterUserNameHere";
         }
     }
@@ -81,10 +89,10 @@ async function init() {
     launcher.addEventListener("change", updateConfig);
     vlist.addEventListener("change", updateConfig);
     install.addEventListener("click", async () => {
-        await execute(`${roamingAppdata}/.crackerClient`, "java", "-jar", `${roamingAppdata}/.crackerClient/Launcher.jar`);
+        await execute(`${roamingAppdata}/.crackerClient`, "java", ...LaunchCommand);
     });
-
     document.getElementById("logo").src = await Embed_ReadFileAsDataUrl(await edition() == "dev" ? `imgs/${await edition()}_logo.png` : "imgs/logo.png");
+    setTimeout(versionExist(), 100)
 }
 
 init()

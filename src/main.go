@@ -19,6 +19,9 @@ var (
 	www embed.FS
 	//go:embed data
 	data embed.FS
+
+	random = rand.New(rand.NewSource(time.Hour.Milliseconds()))
+	port = random.Intn(9999)
 )
 
 func main() {
@@ -27,8 +30,6 @@ func main() {
 	defer w.Destroy()
 	if (edition != "dev") { edition = ""; w.SetTitle("Cracker Client") } else { w.SetTitle("Cracker Client - Dev") }
 	w.SetSize(800, 600, webview.HintNone)
-	random := rand.New(rand.NewSource(time.Hour.Milliseconds()))
-	port := random.Intn(9999);
 	w.Navigate("http://localhost:"+strconv.Itoa(port))
 	setResourceIcon(w, "CLIENTLOGO")
 	bindFunctions(w)
