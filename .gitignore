@@ -7,3 +7,4 @@ src/winres/icon.png
 cookie.txt
 e.bat
 logs
+*.syso
