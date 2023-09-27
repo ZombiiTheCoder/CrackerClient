@@ -76,7 +76,7 @@ var login_with_microsoft = func(w webview.WebView) {
 				}
 				fmt.Println(stop)
 				w.Dispatch(func() {
-					w.Eval("setTimeout(()=>{if (document.domain == 'www.minecraft.net') { save(document.cookie); back() }}, 6000)")
+					w.Eval("setTimeout(()=>{if (location.href == 'https://www.minecraft.net/en-us/msaprofile') { save(document.cookie); back() }}, 2000)")
 				})
 				time.Sleep(1 * time.Second)
 			}

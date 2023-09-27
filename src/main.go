@@ -20,9 +20,13 @@ var (
 	//go:embed data
 	data embed.FS
 
-	random = rand.New(rand.NewSource(time.Hour.Milliseconds()))
-	port = random.Intn(9999)
+	port = randInt(10, 9999)
 )
+
+func randInt(min int, max int) int {
+    rand.Seed(time.Now().UTC().UnixNano())
+    return min + rand.Intn(max-min)
+}
 
 func main() {
 	

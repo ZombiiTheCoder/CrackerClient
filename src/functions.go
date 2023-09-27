@@ -120,7 +120,7 @@ func bindFunctions(w webview.WebView) {
                     w.Eval(fmt.Sprintf(`
 z3 = document.createElement("pre"); z3.innerText = "%v"; z3.setAttribute("class", "log");
 document.getElementsByClassName("console")[0].append(z3)
-if (Math.round(document.getElementsByClassName("console")[0].scrollTop) >= (document.getElementsByClassName("console")[0].scrollHeight - 659)) {
+if (Math.round(document.getElementsByClassName("console")[0].scrollTop) >= (document.getElementsByClassName("console")[0].scrollHeight - 859)) {
     document.getElementsByClassName("console")[0].scroll(0, document.getElementsByClassName("console")[0].scrollHeight)
 }
 `, m))
